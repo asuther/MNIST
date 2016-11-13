@@ -35,4 +35,23 @@ class MNIST_data_processor():
         if train_test:
             return X_train, X_test, y_train, y_test
         else:
-            return X_subset, y_subset
+            return self.X, self.y
+        
+    '''   
+    def show_number(self, datum_index, predicted_value):
+        incorrect_X_reshape = self.X.ix[datum_index].values.reshape(28,28)
+        
+        plt.pcolor(incorrect_X_reshape.T)
+        ax = plt.gca()
+        ax.set_title('Datum Index: %i [Pred: %i]' % (datum_index, int(predicted_value)), y=1.05)
+    '''    
+    def show_number(self, datum_index, predicted_value = ''):
+        img = np.array(self.X.ix[datum_index].reshape(28,28), np.float32)
+        plt.imshow(img, cmap='gray', vmin=0, vmax=255)
+        
+        plt.axis('off')
+        ax = plt.gca()
+        ax.set_title('Datum Index: %i [Pred: %s]' % (datum_index, predicted_value), y=1.05)
+
+        
+        
