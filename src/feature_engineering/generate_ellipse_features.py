@@ -71,16 +71,22 @@ def get_9_dummy_var(digit_data):
     return 0
 
 
-
 if __name__ == '__main__':
     
     filename = sys.argv[1]
     filepath = '/home/lundi/Python/MNIST/data/raw/' + filename
     
     print 'Loading %s from path %s ...' % (filename, filepath), 
-    X = pd.read_csv(filepath)
+    data = pd.read_csv(filepath)
+    if 'label' in data.columns:
+        X = data.drop(['label'], axis=1)
+        y = data['label']
+    else:
+        X = data.copy()
+        y = None
     print 'Done'
     
+    #Dummy variables with ellipses
     print 'Generating dummy variable features ...',
     X_ellipse = pd.DataFrame(X.apply(ellipse_functions.get_ellipse_count, axis=1))
     X_ellipse = X_ellipse.rename(columns = {0: 'ellipse_count'})
@@ -92,6 +98,7 @@ if __name__ == '__main__':
     X_ellipse['dummy_var_9'] = X.apply(get_9_dummy_var, axis=1)
     print 'Done\nGenerating pixels above and below center line ...', 
     
+    #Pixels above and below center line
     results = []
     for index, current_digit_data in X.iterrows():
         mid_line = ellipse_functions.calculate_center_of_number(current_digit_data)
@@ -104,9 +111,19 @@ if __name__ == '__main__':
     X_ellipse['bottom_pixels'] = results_df['bottom']
     print 'Done'
     
+    #Total pixel counts
+    total_pixel_count = X.apply(lambda number_row: number_row.sum(), axis=1)
+    total_pixel_count.name = 'total_pixel_count'
+    X_ellipse = pd.concat([X_ellipse, total_pixel_count], axis=1)
+    
     filepath_processed = filepath.replace('raw', 'processed')
     
     print 'Exporting to %s' % filepath_processed
     
-    X_ellipse.to_csv(filepath_processed, index=False)
+    if not y is None:
+        export_data = pd.concat([y, X_ellipse], axis=1)
+    else:
+        export_data = X_ellipse
+    
+    export_data.to_csv(filepath_processed, index=False)
     
